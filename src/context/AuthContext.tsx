@@ -4,7 +4,7 @@ import type {AuthContextType, GameState} from "../types/game.ts";
 
 const AUTH_KEY = 'spinthetrack_is_logged_in';
 const GAME_ID_KEY = 'spinthetrack_game_id';
-const BACKEND_URL = 'http://localhost:8000';
+const BACKEND_URL = '';
 
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
