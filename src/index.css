@@ -30,3 +30,15 @@
     font-family: 'Inter', sans-serif;
 }
 
+html, body {
+    background-color: #0F0F13; /* Remplace le blanc par défaut du navigateur */
+    margin: 0;
+    padding: 0;
+
+    /* Empêche l'effet de rebond "élastique" (rubber-banding) sur mobile qui dévoile le fond */
+    overscroll-behavior-y: none;
+
+    /* Sécurité supplémentaire anti-zoom au doigt */
+    touch-action: pan-y;
+}
+
