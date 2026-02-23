@@ -44,6 +44,13 @@ export const AuthProvider = ({children}: { children: ReactNode }) => {
 
     useEffect(() => {
         const initAuth = async () => {
+            let currentId = localStorage.getItem(GAME_ID_KEY);
+            if (!currentId) {
+                currentId = uuidv4();
+                localStorage.setItem(GAME_ID_KEY, currentId);
+            }
+            setGameId(currentId);
+
             const isLogged = localStorage.getItem(AUTH_KEY) === 'true';
             setIsAuthenticated(isLogged);
             if (isLogged) await refreshGameState();
@@ -61,19 +68,12 @@ export const AuthProvider = ({children}: { children: ReactNode }) => {
         if (!response.ok) throw new Error('Invalide');
 
         localStorage.setItem(AUTH_KEY, 'true');
-        let currentId = localStorage.getItem(GAME_ID_KEY);
-        if (!currentId) {
-            currentId = uuidv4();
-            localStorage.setItem(GAME_ID_KEY, currentId);
-        }
-        setGameId(currentId);
         setIsAuthenticated(true);
         await refreshGameState();
     };
 
     const logout = () => {
         localStorage.removeItem(AUTH_KEY);
-        localStorage.removeItem(GAME_ID_KEY);
         setGameId(null);
         setGameState(null);
         setIsAuthenticated(false);
