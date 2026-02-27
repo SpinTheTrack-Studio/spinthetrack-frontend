@@ -20,9 +20,7 @@ export const PhaseFinished = () => {
             const response = await apiFetch('/api/game/end', { method: 'POST' });
 
             if (response.ok) {
-                // Optionnel : on rafraîchit le state pour que l'app "oublie" la partie
-                await refreshGameState().catch(() => {});
-
+                await refreshGameState();
                 // 3. REDIRECTION EXPLICITE VERS LE DASHBOARD
                 navigate('/');
             } else {
