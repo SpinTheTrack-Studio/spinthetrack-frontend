@@ -159,8 +159,7 @@ const Round = () => {
         <div
             className="fixed inset-0 bg-[#0F0F13] text-white flex flex-col font-body overflow-x-hidden overflow-y-auto"
             style={{
-                paddingTop: 'calc(env(safe-area-inset-top) + 0.75rem)',
-                // 1. CORRECTION : On demande la taille EXACTE de la zone de sécurité basse, sans rien ajouter (ou 0.5rem max sur les vieux téléphones sans encoche)
+                paddingTop: 'calc(env(safe-area-inset-top) + 0.5rem)',
                 paddingBottom: 'max(env(safe-area-inset-bottom), 0.5rem)',
                 paddingLeft: 'max(1.5rem, env(safe-area-inset-left))',
                 paddingRight: 'max(1.5rem, env(safe-area-inset-right))'
@@ -235,8 +234,6 @@ const Round = () => {
                         />
                     </div>
 
-                    {/* SPACER BAS : Pousse le contenu vers le haut, et garantit un peu de marge de scroll */}
-                    <div className="flex-grow min-h-[1rem]"></div>
                 </main>
             )}
 

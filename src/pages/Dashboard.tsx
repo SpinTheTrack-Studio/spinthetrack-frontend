@@ -139,8 +139,8 @@ const Dashboard = () => {
                 className="w-full h-full bg-[#0F0F13] text-white flex flex-col items-center justify-center relative overflow-hidden font-body"
                 style={{
                     // Utilisation de max() pour garantir un espacement propre même sans encoche
-                    paddingTop: 'max(env(safe-area-inset-top), 1.5rem)',
-                    paddingBottom: 'max(env(safe-area-inset-bottom), 1.5rem)',
+                    paddingTop: 'max(env(safe-area-inset-top), .5rem)',
+                    paddingBottom: 'max(env(safe-area-inset-bottom), .5rem)',
                     paddingLeft: 'max(env(safe-area-inset-left), 1.5rem)',
                     paddingRight: 'max(env(safe-area-inset-right), 1.5rem)'
                 }}
@@ -328,7 +328,7 @@ const Dashboard = () => {
 
                 <div
                     className="fixed bottom-0 left-0 w-full pt-6 px-6 bg-[#0F0F13]/90 backdrop-blur-xl border-t border-[#2D2D35] z-50"
-                    style={{paddingBottom: 'max(env(safe-area-inset-bottom), 1.5rem)'}}
+                    style={{paddingBottom: 'max(env(safe-area-inset-bottom), .5rem)'}}
                 >
                     <button
                         onClick={submitPlaylists}
