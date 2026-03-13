@@ -1,16 +1,16 @@
 import {useState, useRef, useEffect} from 'react';
 import {useAuth} from '../context/AuthContext';
-import {Disc, Mic2, Zap, Ear, LogOut} from 'lucide-react';
+import {Disc, Mic2, Zap, Ear} from 'lucide-react';
 
 import {PhaseIntro} from '../components/round/PhaseIntro';
 import {ChallengeCard} from '../components/round/ChallengeCard';
 import {ActionDock} from '../components/round/ActionDock';
 import {PhaseFinished} from '../components/round/PhaseFinished';
-import {EndGameModal} from '../components/round/EndGameModal';
 
 const Round = () => {
     const {gameState, apiFetch, refreshGameState} = useAuth();
 
+    // --- 1. TOUS LES HOOKS (DOIVENT TOUJOURS S'EXÉCUTER) ---
     const [localPhase, setLocalPhase] = useState<'INTRO' | 'PLAY' | 'REVEAL'>('INTRO');
     const [isPlaying, setIsPlaying] = useState(false);
     const [audioUrl, setAudioUrl] = useState<string | null>(null);
@@ -19,11 +19,13 @@ const Round = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submittedAction, setSubmittedAction] = useState<boolean | null>(null);
 
-    const [isQuitModalOpen, setIsQuitModalOpen] = useState(false);
-
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
-    const player = gameState?.players[gameState?.current_player_index || 0];
+    // NOUVEAUX REFS POUR LE VOLUME IOS (Web Audio API)
+    const audioCtxRef = useRef<AudioContext | any>(null);
+    const gainNodeRef = useRef<GainNode | null>(null);
+
+    const player = gameState?.players[gameState.current_player_index];
     const challenge = gameState?.current_challenge;
 
     useEffect(() => {
@@ -33,7 +35,6 @@ const Round = () => {
             setAudioUrl(null);
             setIsSubmitting(false);
             setSubmittedAction(null);
-            setIsQuitModalOpen(false);
         }
     }, [gameState?.status, gameState?.current_round, gameState?.current_player_index]);
 
@@ -59,10 +60,42 @@ const Round = () => {
         };
     }, [challenge?.track_id]);
 
+    // --- 2. FONCTIONS ---
     const startTurn = () => setLocalPhase('PLAY');
 
     const togglePlay = () => {
         if (!audioRef.current) return;
+
+        // --- CONTOURNEMENT VOLUME IOS (Web Audio API) ---
+        if (!audioCtxRef.current) {
+            // Création du contexte audio (compatible Safari)
+            const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+            audioCtxRef.current = new AudioContext();
+
+            // Création du contrôleur de volume (Gain)
+            gainNodeRef.current = audioCtxRef.current.createGain();
+
+            // On branche la balise <audio> dans notre contrôleur, puis vers les haut-parleurs
+            const source = audioCtxRef.current.createMediaElementSource(audioRef.current);
+            source.connect(gainNodeRef.current);
+            if (gainNodeRef.current) {
+                gainNodeRef.current.connect(audioCtxRef.current.destination);
+            }
+        }
+
+        // On réveille le contexte s'il était endormi par Safari
+        if (audioCtxRef.current.state === 'suspended') {
+            audioCtxRef.current.resume();
+        }
+
+        // On applique le volume via le GainNode (fonctionne sur iOS !)
+        if (challenge?.mode === 'HUMMER' && gainNodeRef.current) {
+            gainNodeRef.current.gain.value = 0.05; // Volume à 5%
+        } else if (gainNodeRef.current) {
+            gainNodeRef.current.gain.value = 1.0;  // Volume normal
+        }
+        // ------------------------------------------------
+
         if (isPlaying) audioRef.current.pause();
         else audioRef.current.play();
         setIsPlaying(!isPlaying);
@@ -71,9 +104,14 @@ const Round = () => {
     const handleReveal = () => {
         setLocalPhase('REVEAL');
         if (audioRef.current) {
-            audioRef.current.volume = 1.0;
             audioRef.current.playbackRate = 1.0;
             audioRef.current.preservesPitch = true;
+
+            // On remet le volume normal via le GainNode à la révélation
+            if (gainNodeRef.current) {
+                gainNodeRef.current.gain.value = 1.0;
+            }
+
             if (!isPlaying) {
                 audioRef.current.play();
                 setIsPlaying(true);
@@ -106,9 +144,8 @@ const Round = () => {
     const handleAudioSetup = (e: React.SyntheticEvent<HTMLAudioElement>) => {
         const audio = e.currentTarget;
 
-        if (challenge?.mode === 'HUMMER' && audioRef.current) {
-            audioRef.current.volume = 0.05;
-        }
+        // Note : On a supprimé le réglage du volume ici (géré dans togglePlay)
+
         if (challenge?.mode === 'MAESTRO' && challenge.lyrics_challenge) {
             audio.currentTime = challenge.lyrics_challenge.start_time;
         }
@@ -147,6 +184,7 @@ const Round = () => {
         }
     };
 
+    // --- 3. RENDUS CONDITIONNELS (TOUJOURS APRÈS LES HOOKS) ---
     if (gameState?.status === 'FINISHED') {
         return <PhaseFinished/>;
     }
@@ -155,93 +193,63 @@ const Round = () => {
 
     const theme = getModeConfig(challenge.mode);
 
+    // --- 4. AFFICHAGE DE LA PAGE DE JEU ---
     return (
-        <div
-            className="fixed inset-0 bg-[#0F0F13] text-white flex flex-col font-body overflow-x-hidden overflow-y-auto"
-            style={{
-                paddingTop: 'calc(env(safe-area-inset-top) + .5rem)',
-                paddingBottom: 'max(env(safe-area-inset-bottom), .5rem)',
-                paddingLeft: 'max(1.5rem, env(safe-area-inset-left))',
-                paddingRight: 'max(1.5rem, env(safe-area-inset-right))'
-            }}
-        >
-
+        <div className="min-h-screen bg-[#0F0F13] text-white p-6 flex flex-col font-body relative overflow-hidden">
             <div
                 className={`absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[120px] pointer-events-none transition-colors duration-1000 ${theme.bgGlow.replace('/20', '/10')}`}></div>
 
-            <header className="relative z-10 flex justify-between items-center mb-4 w-full flex-shrink-0">
-                <div className="flex flex-col mt-1">
+            <header className="relative z-10 flex justify-between items-center mb-10">
+                <div className="flex flex-col">
                     <span className="text-[10px] text-[#A0A0A5] uppercase tracking-[0.2em] font-bold">
                         Round {gameState.current_round}
                     </span>
                     <span
                         className="text-[12px] font-heading text-cyan-400 uppercase tracking-tighter">Live Session</span>
                 </div>
-
-                <div className="flex items-center gap-4">
-                    <div className="flex flex-col items-end">
-                        <span className="text-[10px] text-[#A0A0A5] uppercase tracking-wider font-bold">Score</span>
-                        <span
-                            className="font-heading font-black text-2xl text-white leading-none">{player?.score}</span>
-                    </div>
-
-                    <div className="h-6 w-[1px] bg-[#2D2D35] mx-1"></div>
-
-                    <button
-                        onClick={() => setIsQuitModalOpen(true)}
-                        className="p-2 text-[#505055] hover:text-[#EC4899] transition-all duration-300 group outline-none"
-                        aria-label="Quitter la partie"
-                    >
-                        <LogOut size={22} strokeWidth={2}
-                                className="group-hover:drop-shadow-[0_0_8px_rgba(236,72,153,0.8)]"/>
-                    </button>
+                <div className="flex flex-col items-end">
+                    <span className="text-[10px] text-[#A0A0A5] uppercase tracking-wider font-bold">Score</span>
+                    <span className="font-heading font-black text-2xl text-white">{player?.score}</span>
                 </div>
             </header>
 
             {localPhase === 'INTRO' && (
-                <PhaseIntro player={player} theme={theme} startTurn={startTurn} isLoadingAudio={isLoadingAudio}/>
+                <PhaseIntro
+                    player={player}
+                    theme={theme}
+                    startTurn={startTurn}
+                    isLoadingAudio={isLoadingAudio}
+                />
             )}
 
             {localPhase !== 'INTRO' && (
-                <main className="flex-1 flex flex-col w-full max-w-sm mx-auto relative z-10">
+                <main
+                    className="flex-1 flex flex-col items-center justify-center relative z-10 w-full max-w-sm mx-auto">
 
-                    {/* SPACER HAUT : Pousse le contenu vers le bas */}
-                    <div className="flex-grow"></div>
+                    <ChallengeCard
+                        challenge={challenge}
+                        theme={theme}
+                        localPhase={localPhase}
+                        isPlaying={isPlaying}
+                        setIsPlaying={setIsPlaying}
+                        audioUrl={audioUrl}
+                        audioRef={audioRef}
+                        handleAudioSetup={handleAudioSetup}
+                        handleTimeUpdate={handleTimeUpdate}
+                    />
 
-                    {/* 2. CORRECTION : Contenu principal (On a retiré my-auto qui buggait) */}
-                    <div className="w-full flex flex-col items-center gap-8 flex-shrink-0">
-                        <ChallengeCard
-                            challenge={challenge}
-                            theme={theme}
-                            localPhase={localPhase}
-                            isPlaying={isPlaying}
-                            setIsPlaying={setIsPlaying}
-                            audioUrl={audioUrl}
-                            audioRef={audioRef}
-                            handleAudioSetup={handleAudioSetup}
-                            handleTimeUpdate={handleTimeUpdate}
-                        />
-
-                        <ActionDock
-                            localPhase={localPhase}
-                            isPlaying={isPlaying}
-                            isLoadingAudio={isLoadingAudio}
-                            isSubmitting={isSubmitting}
-                            submittedAction={submittedAction}
-                            togglePlay={togglePlay}
-                            handleReveal={handleReveal}
-                            handleValidation={handleValidation}
-                        />
-                    </div>
-
+                    <ActionDock
+                        localPhase={localPhase}
+                        isPlaying={isPlaying}
+                        isLoadingAudio={isLoadingAudio}
+                        isSubmitting={isSubmitting}
+                        submittedAction={submittedAction}
+                        togglePlay={togglePlay}
+                        handleReveal={handleReveal}
+                        handleValidation={handleValidation}
+                    />
                 </main>
             )}
-
-            <EndGameModal
-                isOpen={isQuitModalOpen}
-                onClose={() => setIsQuitModalOpen(false)}
-            />
-
         </div>
     );
 };
