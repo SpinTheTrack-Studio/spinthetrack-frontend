@@ -30,7 +30,7 @@ const Login = () => {
         <div
             className="w-full h-full flex flex-col items-center justify-center bg-[#121212] text-white relative overflow-hidden"
             style={{
-                paddingTop: 'calc(env(safe-area-inset-top) + 1.5rem)',
+                paddingTop: 'calc(env(safe-area-inset-top) + .5rem)',
                 paddingBottom: 'calc(env(safe-area-inset-bottom) + 1.5rem)',
                 paddingLeft: 'max(1.5rem, env(safe-area-inset-left))',
                 paddingRight: 'max(1.5rem, env(safe-area-inset-right))'

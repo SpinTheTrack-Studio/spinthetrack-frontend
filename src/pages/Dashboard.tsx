@@ -25,9 +25,9 @@ const Dashboard = () => {
     const [players, setPlayers] = useState<string[]>(['', '']);
     const [library, setLibrary] = useState<PlaylistsResponse>({});
     const [selectedPlaylistIds, setSelectedPlaylistIds] = useState<string[]>([]);
+
     const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
-    // --- LOGIQUE DÉCONNEXION ---
     const confirmLogout = () => {
         logout();
         navigate('/login');
@@ -41,7 +41,7 @@ const Dashboard = () => {
                 <div
                     className="bg-[#1E1E24] border border-[#2D2D35] rounded-3xl p-8 w-full max-w-sm text-center shadow-2xl animate-in zoom-in-95 duration-300">
                     <div
-                        className="w-16 h-16 rounded-full bg-[#FF3B30]/10 border-2 border-[#FF3B30]/50 flex items-center justify-center mx-auto mb-6">
+                        className="w-16 h-16 rounded-full bg-[#FF3B30]/10 border-2 border-[#FF3B30]/50 flex items-center justify-center mx-auto">
                         <LogOut size={32} className="text-[#FF3B30]"/>
                     </div>
                     <h2 className="font-heading text-2xl uppercase tracking-widest text-white mb-2">Déconnexion</h2>
@@ -66,7 +66,6 @@ const Dashboard = () => {
         );
     };
 
-    // --- LOGIQUE JOUEURS ---
     const handleAddPlayer = () => setPlayers([...players, '']);
     const handlePlayerChange = (index: number, value: string) => {
         const newPlayers = [...players];
@@ -92,7 +91,6 @@ const Dashboard = () => {
         }
     };
 
-    // --- LOGIQUE PLAYLISTS ---
     useEffect(() => {
         if (gameState?.status === 'PLAYLIST_SELECTION') {
             const fetchPlaylists = async () => {
@@ -140,17 +138,21 @@ const Dashboard = () => {
             <div
                 className="w-full h-full bg-[#0F0F13] text-white flex flex-col items-center justify-center relative overflow-hidden font-body"
                 style={{
-                    paddingTop: 'calc(env(safe-area-inset-top) + 1.5rem)',
-                    paddingBottom: 'calc(env(safe-area-inset-bottom) + 1.5rem)',
-                    paddingLeft: 'max(1.5rem, env(safe-area-inset-left))',
-                    paddingRight: 'max(1.5rem, env(safe-area-inset-right))'
+                    // Utilisation de max() pour garantir un espacement propre même sans encoche
+                    paddingTop: 'max(env(safe-area-inset-top), 1.5rem)',
+                    paddingBottom: 'max(env(safe-area-inset-bottom), 1.5rem)',
+                    paddingLeft: 'max(env(safe-area-inset-left), 1.5rem)',
+                    paddingRight: 'max(env(safe-area-inset-right), 1.5rem)'
                 }}
             >
                 <button
                     onClick={() => setIsLogoutModalOpen(true)}
-                    // On modifie l'absolute top pour qu'il prenne en compte l'encoche
-                    style={{top: 'calc(env(safe-area-inset-top) + 1.5rem)'}}
-                    className="absolute right-6 z-50 p-3 rounded-full bg-[#1E1E24]/80 backdrop-blur-md border border-[#2D2D35] text-[#A0A0A5] hover:text-[#FF3B30] hover:border-[#FF3B30]/50 transition-all shadow-lg"
+                    // L'absolute doit embarquer son propre calcul par rapport au haut de l'écran physique
+                    style={{
+                        top: 'max(env(safe-area-inset-top), 1.5rem)',
+                        right: 'max(env(safe-area-inset-right), 1.5rem)'
+                    }}
+                    className="absolute z-50 p-3 rounded-full bg-[#1E1E24]/80 backdrop-blur-md border border-[#2D2D35] text-[#A0A0A5] hover:text-[#FF3B30] hover:border-[#FF3B30]/50 transition-all shadow-lg"
                 >
                     <LogOut size={20}/>
                 </button>
@@ -218,10 +220,10 @@ const Dashboard = () => {
             <div
                 className="w-full h-full bg-[#0F0F13] text-white flex flex-col relative font-body"
                 style={{
-                    paddingTop: 'calc(env(safe-area-inset-top) + 1.5rem)',
-                    paddingBottom: 'calc(env(safe-area-inset-bottom) + 6rem)', // Extra padding pour le bouton fixe en bas
-                    paddingLeft: 'max(1.5rem, env(safe-area-inset-left))',
-                    paddingRight: 'max(1.5rem, env(safe-area-inset-right))'
+                    paddingTop: 'max(env(safe-area-inset-top), 1.5rem)',
+                    paddingLeft: 'max(env(safe-area-inset-left), 1.5rem)',
+                    paddingRight: 'max(env(safe-area-inset-right), 1.5rem)'
+                    // Pas de paddingBottom ici ! Le footer fixe s'en occupe, sinon on coupe le scroll de la grille.
                 }}
             >
                 <div
@@ -246,83 +248,87 @@ const Dashboard = () => {
                     </button>
                 </header>
 
-                <div className="flex-1 z-10 grid grid-cols-2 gap-4 pb-32 overflow-y-auto content-start">
-                    {playlistEntries.map(([name, summary]) => {
-                        const isSelected = selectedPlaylistIds.includes(summary.id);
+                {/* CORRECTION DU SCROLL DE GRILLE : Flex-1 avec min-h-0 isole la grille des calculs capricieux */}
+                <div className="flex-1 min-h-0 w-full overflow-y-auto z-10">
+                    <div className="grid grid-cols-2 gap-4 pb-36 pt-2">
+                        {playlistEntries.map(([name, summary]) => {
+                            const isSelected = selectedPlaylistIds.includes(summary.id);
 
-                        let displayCovers = summary.covers.slice(0, 4);
-                        if (displayCovers.length === 0) {
-                            displayCovers = ['https://via.placeholder.com/500x500?text=No+Music'];
-                        }
+                            let displayCovers = summary.covers.slice(0, 4);
+                            if (displayCovers.length === 0) {
+                                displayCovers = ['https://via.placeholder.com/500x500?text=No+Music'];
+                            }
 
-                        const displayTags = summary.tags.slice(0, 3);
+                            const displayTags = summary.tags.slice(0, 3);
 
-                        return (
-                            <div
-                                key={summary.id}
-                                onClick={() => togglePlaylist(summary.id)}
-                                className={`relative group cursor-pointer aspect-square rounded-[24px] overflow-hidden border-2 transition-all duration-300 transform ${
-                                    isSelected
-                                        ? 'border-[#FF0099] shadow-[0_0_25px_rgba(255,0,153,0.3)] scale-[1.02] z-10 ring-1 ring-[#FF0099]/50'
-                                        : 'border-[#2D2D35] bg-[#1E1E24] hover:border-[#A0A0A5] z-0'
-                                }`}
-                            >
-                                <div className="absolute inset-0 w-full h-full grid grid-cols-2 grid-rows-2">
-                                    {displayCovers.map((coverUrl, index) => (
-                                        <div key={index}
-                                             className="relative w-full h-full overflow-hidden border-[0.5px] border-[#0F0F13]">
-                                            <img src={coverUrl} alt={`${name} cover ${index + 1}`}
-                                                 className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-300"/>
-                                        </div>
-                                    ))}
-                                </div>
-
+                            return (
                                 <div
-                                    className="absolute inset-0 bg-gradient-to-t from-[#0F0F13] via-black/40 to-transparent opacity-90 pointer-events-none"></div>
-
-                                <div
-                                    className="absolute top-3 left-3 bg-[#0F0F13]/80 backdrop-blur-md px-2 py-1 rounded-lg border border-[#2D2D35] z-20">
-                                    <p className="text-[10px] font-bold text-white flex items-center gap-1">
-                                        <Mic2 size={10} className="text-[#FF0099]"/> {summary.track_count}
-                                    </p>
-                                </div>
-
-                                <div className="absolute bottom-0 left-0 p-4 w-full z-20">
-                                    <h3 className={`font-heading font-bold text-sm truncate uppercase tracking-wide mb-2 ${isSelected ? 'text-[#FF0099]' : 'text-white'}`}>
-                                        {summary.title || name}
-                                    </h3>
-
-                                    <div className="flex flex-wrap gap-1">
-                                        {displayTags.map(tag => (
-                                            <span key={tag}
-                                                  className="text-[9px] px-1.5 py-0.5 rounded-md bg-[#2D2D35] text-[#A0A0A5] uppercase font-bold">
-                                                {tag}
-                                            </span>
+                                    key={summary.id}
+                                    onClick={() => togglePlaylist(summary.id)}
+                                    className={`relative group cursor-pointer aspect-square rounded-[24px] overflow-hidden border-2 transition-all duration-300 transform ${
+                                        isSelected
+                                            ? 'border-[#FF0099] shadow-[0_0_25px_rgba(255,0,153,0.3)] scale-[1.02] z-10 ring-1 ring-[#FF0099]/50'
+                                            : 'border-[#2D2D35] bg-[#1E1E24] hover:border-[#A0A0A5] z-0'
+                                    }`}
+                                >
+                                    <div className="absolute inset-0 w-full h-full grid grid-cols-2 grid-rows-2">
+                                        {displayCovers.map((coverUrl, index) => (
+                                            <div key={index}
+                                                 className="relative w-full h-full overflow-hidden border-[0.5px] border-[#0F0F13]">
+                                                <img src={coverUrl} alt={`${name} cover ${index + 1}`}
+                                                     className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-300"/>
+                                            </div>
                                         ))}
                                     </div>
-                                </div>
 
-                                {isSelected && (
                                     <div
-                                        className="absolute top-3 right-3 bg-[#FF0099] text-white rounded-full p-1 shadow-[0_0_15px_#FF0099] animate-in zoom-in duration-200 z-20">
-                                        <CheckCircle size={18} strokeWidth={3}/>
-                                    </div>
-                                )}
-                            </div>
-                        );
-                    })}
+                                        className="absolute inset-0 bg-gradient-to-t from-[#0F0F13] via-black/40 to-transparent opacity-90 pointer-events-none"></div>
 
-                    {playlistEntries.length === 0 && !isLoading && (
-                        <div className="col-span-2 flex flex-col items-center justify-center py-20 text-[#2D2D35]">
-                            <Music size={48} className="mb-4 opacity-50"/>
-                            <p className="text-[#A0A0A5] font-heading uppercase text-sm">Aucune playlist disponible</p>
-                        </div>
-                    )}
+                                    <div
+                                        className="absolute top-3 left-3 bg-[#0F0F13]/80 backdrop-blur-md px-2 py-1 rounded-lg border border-[#2D2D35] z-20">
+                                        <p className="text-[10px] font-bold text-white flex items-center gap-1">
+                                            <Mic2 size={10} className="text-[#FF0099]"/> {summary.track_count}
+                                        </p>
+                                    </div>
+
+                                    <div className="absolute bottom-0 left-0 p-4 w-full z-20">
+                                        <h3 className={`font-heading font-bold text-sm truncate uppercase tracking-wide mb-2 ${isSelected ? 'text-[#FF0099]' : 'text-white'}`}>
+                                            {summary.title || name}
+                                        </h3>
+
+                                        <div className="flex flex-wrap gap-1">
+                                            {displayTags.map(tag => (
+                                                <span key={tag}
+                                                      className="text-[9px] px-1.5 py-0.5 rounded-md bg-[#2D2D35] text-[#A0A0A5] uppercase font-bold">
+                                                    {tag}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {isSelected && (
+                                        <div
+                                            className="absolute top-3 right-3 bg-[#FF0099] text-white rounded-full p-1 shadow-[0_0_15px_#FF0099] animate-in zoom-in duration-200 z-20">
+                                            <CheckCircle size={18} strokeWidth={3}/>
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+
+                        {playlistEntries.length === 0 && !isLoading && (
+                            <div className="col-span-2 flex flex-col items-center justify-center py-20 text-[#2D2D35]">
+                                <Music size={48} className="mb-4 opacity-50"/>
+                                <p className="text-[#A0A0A5] font-heading uppercase text-sm">Aucune playlist
+                                    disponible</p>
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 <div
-                    className="fixed bottom-0 left-0 w-full p-6 bg-[#0F0F13]/90 backdrop-blur-xl border-t border-[#2D2D35] z-50"
-                    style={{paddingBottom: 'calc(env(safe-area-inset-bottom) + 1.5rem)'}}
+                    className="fixed bottom-0 left-0 w-full pt-6 px-6 bg-[#0F0F13]/90 backdrop-blur-xl border-t border-[#2D2D35] z-50"
+                    style={{paddingBottom: 'max(env(safe-area-inset-bottom), 1.5rem)'}}
                 >
                     <button
                         onClick={submitPlaylists}

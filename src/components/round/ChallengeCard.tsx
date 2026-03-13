@@ -14,7 +14,7 @@ export const ChallengeCard = ({
 
     return (
         <>
-            <div className="flex flex-col items-center mb-8 text-center w-full">
+            <div className="flex flex-col items-center mb-4 text-center w-full">
                 <div
                     className={`p-4 rounded-full border-2 ${theme.border} ${theme.bgGlow.replace('/20', '/10')} mb-6 shadow-lg shadow-black/50`}>
                     <Icon size={44} className={theme.color}/>
@@ -35,7 +35,7 @@ export const ChallengeCard = ({
                 )}
             </div>
 
-            <div className="relative w-full max-w-[320px] aspect-square mb-8">
+            <div className="relative w-full max-w-[320px] aspect-square mb-4">
                 <div
                     className={`absolute inset-0 border-2 ${theme.border} rounded-[2rem] bg-[#1E1E24] backdrop-blur-xl flex items-center justify-center transition-all duration-700 z-20 ${localPhase === 'REVEAL' ? 'opacity-0 scale-125 rotate-12 pointer-events-none' : 'opacity-100 shadow-2xl'}`}>
                     <div className="flex flex-col items-center gap-4 opacity-20">
@@ -59,13 +59,13 @@ export const ChallengeCard = ({
             </div>
 
             {localPhase === 'REVEAL' && (
-                <div className="text-center mb-8 animate-in slide-in-from-bottom-8 fade-in duration-500 w-full">
+                <div className="text-center mb-4 animate-in slide-in-from-bottom-8 fade-in duration-500 w-full">
                     <h2 className="font-heading text-2xl sm:text-3xl uppercase text-white mb-1 leading-none px-4">{challenge.track_title}</h2>
-                    <p className="text-[#A0A0A5] font-semibold tracking-widest uppercase text-sm mb-6">{challenge.track_artist}</p>
+                    <p className="text-[#A0A0A5] font-semibold tracking-widest uppercase text-sm mb-2">{challenge.track_artist}</p>
 
                     {challenge.mode === 'MAESTRO' && challenge.lyrics_challenge && (
-                        <div className="p-6 bg-[#1A1A1E] rounded-3xl border border-white/5 w-full shadow-inner">
-                            <p className="text-[10px] text-[#A0A0A5] uppercase font-black mb-3 tracking-[0.2em]">Solution</p>
+                        <div className="p-2 bg-[#1A1A1E] rounded-3xl border border-white/5 w-full shadow-inner mt-3">
+                            <p className="text-[10px] text-[#A0A0A5] uppercase font-black mb-1 tracking-[0.2em]">Solution</p>
                             <p className={`text-xl sm:text-2xl text-pink-400 font-bold italic leading-snug ${theme.color}`}>
                                 "{challenge.lyrics_challenge.hidden_answer}"
                             </p>
