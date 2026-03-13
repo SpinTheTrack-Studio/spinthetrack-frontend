@@ -163,13 +163,22 @@ const Round = () => {
     // 4. RENDU VISUEL NORMAL (Minimaliste)
     // ==========================================
     return (
-        <div className="min-h-screen bg-[#0F0F13] text-white p-6 flex flex-col font-body relative overflow-hidden">
+        <div
+            className="w-full h-full bg-[#0F0F13] text-white flex flex-col font-body relative overflow-hidden"
+            style={{
+                // 1.5rem équivaut à ton ancien "p-6" (24px).
+                // On additionne la marge normale + la marge de l'encoche/île d'Apple
+                paddingTop: 'calc(env(safe-area-inset-top) + 1.5rem)',
+                paddingBottom: 'calc(env(safe-area-inset-bottom) + 1.5rem)',
+                paddingLeft: 'max(1.5rem, env(safe-area-inset-left))',
+                paddingRight: 'max(1.5rem, env(safe-area-inset-right))'
+            }}
+        >
 
             <div
                 className={`absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[120px] pointer-events-none transition-colors duration-1000 ${theme.bgGlow.replace('/20', '/10')}`}></div>
 
             <header className="relative z-10 flex justify-between items-center mb-10 w-full">
-
                 {/* GAUCHE : Infos Round */}
                 <div className="flex flex-col mt-1">
                     <span className="text-[10px] text-[#A0A0A5] uppercase tracking-[0.2em] font-bold">

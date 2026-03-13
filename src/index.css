@@ -30,15 +30,16 @@
     font-family: 'Inter', sans-serif;
 }
 
-html, body {
-    background-color: #0F0F13; /* Remplace le blanc par défaut du navigateur */
+html, body, #root {
+    /* Utilise la hauteur dynamique (gère parfaitement iOS) */
+    height: 100dvh;
+    width: 100vw;
+    background-color: #0F0F13;
     margin: 0;
     padding: 0;
 
-    /* Empêche l'effet de rebond "élastique" (rubber-banding) sur mobile qui dévoile le fond */
+    /* Coupe tout débordement (empêche le scroll fantôme) */
+    overflow: hidden;
     overscroll-behavior-y: none;
-
-    /* Sécurité supplémentaire anti-zoom au doigt */
     touch-action: pan-y;
 }
-

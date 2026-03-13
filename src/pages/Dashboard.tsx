@@ -17,7 +17,6 @@ interface PlaylistsResponse {
 }
 
 const Dashboard = () => {
-    // 1. AJOUT DE "logout" ICI 👇
     const {gameState, apiFetch, refreshGameState, logout} = useAuth();
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(false);
@@ -26,13 +25,10 @@ const Dashboard = () => {
     const [players, setPlayers] = useState<string[]>(['', '']);
     const [library, setLibrary] = useState<PlaylistsResponse>({});
     const [selectedPlaylistIds, setSelectedPlaylistIds] = useState<string[]>([]);
-
-    // ÉTAT MODALE DÉCONNEXION
     const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
     // --- LOGIQUE DÉCONNEXION ---
     const confirmLogout = () => {
-        // 2. APPEL DE LA FONCTION DU CONTEXTE 👇
         logout();
         navigate('/login');
     };
@@ -142,11 +138,19 @@ const Dashboard = () => {
     if (!gameState || gameState.status === 'LOBBY') {
         return (
             <div
-                className="min-h-screen bg-[#0F0F13] text-white flex flex-col items-center justify-center p-6 relative overflow-hidden font-body">
-
+                className="w-full h-full bg-[#0F0F13] text-white flex flex-col items-center justify-center relative overflow-hidden font-body"
+                style={{
+                    paddingTop: 'calc(env(safe-area-inset-top) + 1.5rem)',
+                    paddingBottom: 'calc(env(safe-area-inset-bottom) + 1.5rem)',
+                    paddingLeft: 'max(1.5rem, env(safe-area-inset-left))',
+                    paddingRight: 'max(1.5rem, env(safe-area-inset-right))'
+                }}
+            >
                 <button
                     onClick={() => setIsLogoutModalOpen(true)}
-                    className="absolute top-6 right-6 z-50 p-3 rounded-full bg-[#1E1E24]/80 backdrop-blur-md border border-[#2D2D35] text-[#A0A0A5] hover:text-[#FF3B30] hover:border-[#FF3B30]/50 transition-all shadow-lg"
+                    // On modifie l'absolute top pour qu'il prenne en compte l'encoche
+                    style={{top: 'calc(env(safe-area-inset-top) + 1.5rem)'}}
+                    className="absolute right-6 z-50 p-3 rounded-full bg-[#1E1E24]/80 backdrop-blur-md border border-[#2D2D35] text-[#A0A0A5] hover:text-[#FF3B30] hover:border-[#FF3B30]/50 transition-all shadow-lg"
                 >
                     <LogOut size={20}/>
                 </button>
@@ -170,7 +174,7 @@ const Dashboard = () => {
                         </p>
                     </div>
 
-                    <div className="space-y-4">
+                    <div className="space-y-4 max-h-[40vh] overflow-y-auto px-2 pb-2">
                         {players.map((player, index) => (
                             <div key={index} className="relative group">
                                 <input
@@ -211,7 +215,15 @@ const Dashboard = () => {
         const playlistEntries = Object.entries(library);
 
         return (
-            <div className="min-h-screen bg-[#0F0F13] text-white flex flex-col p-6 relative font-body">
+            <div
+                className="w-full h-full bg-[#0F0F13] text-white flex flex-col relative font-body"
+                style={{
+                    paddingTop: 'calc(env(safe-area-inset-top) + 1.5rem)',
+                    paddingBottom: 'calc(env(safe-area-inset-bottom) + 6rem)', // Extra padding pour le bouton fixe en bas
+                    paddingLeft: 'max(1.5rem, env(safe-area-inset-left))',
+                    paddingRight: 'max(1.5rem, env(safe-area-inset-right))'
+                }}
+            >
                 <div
                     className="absolute top-0 right-0 w-[50%] h-[50%] bg-[#FF0099]/10 rounded-full blur-[120px] pointer-events-none"></div>
 
@@ -234,7 +246,7 @@ const Dashboard = () => {
                     </button>
                 </header>
 
-                <div className="flex-1 z-10 grid grid-cols-2 gap-4 pb-32 content-start">
+                <div className="flex-1 z-10 grid grid-cols-2 gap-4 pb-32 overflow-y-auto content-start">
                     {playlistEntries.map(([name, summary]) => {
                         const isSelected = selectedPlaylistIds.includes(summary.id);
 
@@ -259,11 +271,8 @@ const Dashboard = () => {
                                     {displayCovers.map((coverUrl, index) => (
                                         <div key={index}
                                              className="relative w-full h-full overflow-hidden border-[0.5px] border-[#0F0F13]">
-                                            <img
-                                                src={coverUrl}
-                                                alt={`${name} cover ${index + 1}`}
-                                                className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-300"
-                                            />
+                                            <img src={coverUrl} alt={`${name} cover ${index + 1}`}
+                                                 className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-300"/>
                                         </div>
                                     ))}
                                 </div>
@@ -312,7 +321,9 @@ const Dashboard = () => {
                 </div>
 
                 <div
-                    className="fixed bottom-0 left-0 w-full p-6 bg-[#0F0F13]/90 backdrop-blur-xl border-t border-[#2D2D35] z-50">
+                    className="fixed bottom-0 left-0 w-full p-6 bg-[#0F0F13]/90 backdrop-blur-xl border-t border-[#2D2D35] z-50"
+                    style={{paddingBottom: 'calc(env(safe-area-inset-bottom) + 1.5rem)'}}
+                >
                     <button
                         onClick={submitPlaylists}
                         disabled={isLoading || selectedPlaylistIds.length === 0}
@@ -329,7 +340,7 @@ const Dashboard = () => {
     }
 
     return (
-        <div className="min-h-screen bg-[#0F0F13] flex items-center justify-center">
+        <div className="w-full h-full bg-[#0F0F13] flex items-center justify-center">
             <div className="w-12 h-12 border-4 border-[#2D2D35] border-t-[#00F0FF] rounded-full animate-spin"></div>
         </div>
     );
