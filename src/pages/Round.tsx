@@ -159,8 +159,8 @@ const Round = () => {
         <div
             className="fixed inset-0 bg-[#0F0F13] text-white flex flex-col font-body overflow-x-hidden overflow-y-auto"
             style={{
-                paddingTop: 'calc(env(safe-area-inset-top) + 0.5rem)',
-                paddingBottom: 'max(env(safe-area-inset-bottom), 0.5rem)',
+                paddingTop: 'calc(env(safe-area-inset-top) + .5rem)',
+                paddingBottom: 'max(env(safe-area-inset-bottom), .5rem)',
                 paddingLeft: 'max(1.5rem, env(safe-area-inset-left))',
                 paddingRight: 'max(1.5rem, env(safe-area-inset-right))'
             }}
