@@ -11,7 +11,6 @@ import {EndGameModal} from '../components/round/EndGameModal';
 const Round = () => {
     const {gameState, apiFetch, refreshGameState} = useAuth();
 
-    // --- 1. TOUS LES HOOKS ---
     const [localPhase, setLocalPhase] = useState<'INTRO' | 'PLAY' | 'REVEAL'>('INTRO');
     const [isPlaying, setIsPlaying] = useState(false);
     const [audioUrl, setAudioUrl] = useState<string | null>(null);
@@ -60,7 +59,6 @@ const Round = () => {
         };
     }, [challenge?.track_id]);
 
-    // --- 2. FONCTIONS ---
     const startTurn = () => setLocalPhase('PLAY');
 
     const togglePlay = () => {
@@ -149,7 +147,6 @@ const Round = () => {
         }
     };
 
-    // --- 3. RENDUS CONDITIONNELS ---
     if (gameState?.status === 'FINISHED') {
         return <PhaseFinished/>;
     }
@@ -158,37 +155,35 @@ const Round = () => {
 
     const theme = getModeConfig(challenge.mode);
 
-// ==========================================
-    // 4. RENDU VISUEL NORMAL (Scroll Responsive)
-    // ==========================================
     return (
         <div
-            // 1. CORRECTION ICI : On autorise le scroll vertical (overflow-y-auto)
             className="fixed inset-0 bg-[#0F0F13] text-white flex flex-col font-body overflow-x-hidden overflow-y-auto"
             style={{
                 paddingTop: 'calc(env(safe-area-inset-top) + 0.75rem)',
-                paddingBottom: 'calc(env(safe-area-inset-bottom) + 1rem)',
+                // 1. CORRECTION : On demande la taille EXACTE de la zone de sécurité basse, sans rien ajouter (ou 0.5rem max sur les vieux téléphones sans encoche)
+                paddingBottom: 'max(env(safe-area-inset-bottom), 0.5rem)',
                 paddingLeft: 'max(1.5rem, env(safe-area-inset-left))',
                 paddingRight: 'max(1.5rem, env(safe-area-inset-right))'
             }}
         >
 
-            <div className={`absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[120px] pointer-events-none transition-colors duration-1000 ${theme.bgGlow.replace('/20', '/10')}`}></div>
+            <div
+                className={`absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[120px] pointer-events-none transition-colors duration-1000 ${theme.bgGlow.replace('/20', '/10')}`}></div>
 
-            <header className="relative z-10 flex justify-between items-center mb-6 w-full flex-shrink-0">
-                {/* GAUCHE : Infos Round */}
+            <header className="relative z-10 flex justify-between items-center mb-4 w-full flex-shrink-0">
                 <div className="flex flex-col mt-1">
                     <span className="text-[10px] text-[#A0A0A5] uppercase tracking-[0.2em] font-bold">
                         Round {gameState.current_round}
                     </span>
-                    <span className="text-[12px] font-heading text-cyan-400 uppercase tracking-tighter">Live Session</span>
+                    <span
+                        className="text-[12px] font-heading text-cyan-400 uppercase tracking-tighter">Live Session</span>
                 </div>
 
-                {/* DROITE : Score + Icône Quitter */}
                 <div className="flex items-center gap-4">
                     <div className="flex flex-col items-end">
                         <span className="text-[10px] text-[#A0A0A5] uppercase tracking-wider font-bold">Score</span>
-                        <span className="font-heading font-black text-2xl text-white leading-none">{player?.score}</span>
+                        <span
+                            className="font-heading font-black text-2xl text-white leading-none">{player?.score}</span>
                     </div>
 
                     <div className="h-6 w-[1px] bg-[#2D2D35] mx-1"></div>
@@ -198,7 +193,8 @@ const Round = () => {
                         className="p-2 text-[#505055] hover:text-[#EC4899] transition-all duration-300 group outline-none"
                         aria-label="Quitter la partie"
                     >
-                        <LogOut size={22} strokeWidth={2} className="group-hover:drop-shadow-[0_0_8px_rgba(236,72,153,0.8)]"/>
+                        <LogOut size={22} strokeWidth={2}
+                                className="group-hover:drop-shadow-[0_0_8px_rgba(236,72,153,0.8)]"/>
                     </button>
                 </div>
             </header>
@@ -208,11 +204,13 @@ const Round = () => {
             )}
 
             {localPhase !== 'INTRO' && (
-                // 2. CORRECTION ICI : On enlève justify-center sur le main
-                <main className="flex-1 flex flex-col items-center relative z-10 w-full max-w-sm mx-auto">
+                <main className="flex-1 flex flex-col w-full max-w-sm mx-auto relative z-10">
 
-                    {/* 3. CORRECTION ICI : On ajoute my-auto pour le centrage intelligent + flex-shrink-0 */}
-                    <div className="w-full my-auto flex flex-col items-center gap-8 flex-shrink-0">
+                    {/* SPACER HAUT : Pousse le contenu vers le bas */}
+                    <div className="flex-grow"></div>
+
+                    {/* 2. CORRECTION : Contenu principal (On a retiré my-auto qui buggait) */}
+                    <div className="w-full flex flex-col items-center gap-8 flex-shrink-0">
                         <ChallengeCard
                             challenge={challenge}
                             theme={theme}
@@ -236,6 +234,9 @@ const Round = () => {
                             handleValidation={handleValidation}
                         />
                     </div>
+
+                    {/* SPACER BAS : Pousse le contenu vers le haut, et garantit un peu de marge de scroll */}
+                    <div className="flex-grow min-h-[1rem]"></div>
                 </main>
             )}
 
