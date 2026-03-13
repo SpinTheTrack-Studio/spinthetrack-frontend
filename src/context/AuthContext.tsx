@@ -4,7 +4,7 @@ import type {AuthContextType, GameState} from "../types/game.ts";
 
 const AUTH_KEY = 'spinthetrack_is_logged_in';
 const GAME_ID_KEY = 'spinthetrack_game_id';
-const BACKEND_URL = '';
+const BACKEND_URL = 'http://127.0.0.1:8000';
 
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -76,8 +76,6 @@ export const AuthProvider = ({children}: { children: ReactNode }) => {
 
     const logout = () => {
         localStorage.removeItem(AUTH_KEY);
-        setGameId(null);
-        setGameState(null);
         setIsAuthenticated(false);
     };
 

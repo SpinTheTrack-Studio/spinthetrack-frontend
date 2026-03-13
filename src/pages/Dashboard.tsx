@@ -1,13 +1,14 @@
 import {useState, useEffect} from 'react';
 import {useAuth} from '../context/AuthContext';
-import {Users, Music, Play, CheckCircle, Plus, Mic2} from 'lucide-react';
+import {useNavigate} from 'react-router-dom';
+import {Users, Music, Play, CheckCircle, Plus, Mic2, LogOut} from 'lucide-react';
 
-// --- NOUVEAUX TYPES (Adaptés au JSON léger) ---
+// --- TYPES ---
 interface PlaylistSummary {
     id: string;
     title: string;
     track_count: number;
-    covers: string[]; // Tableau d'URLs d'images
+    covers: string[];
     tags: string[];
 }
 
@@ -16,7 +17,9 @@ interface PlaylistsResponse {
 }
 
 const Dashboard = () => {
-    const {gameState, apiFetch, refreshGameState} = useAuth();
+    // 1. AJOUT DE "logout" ICI 👇
+    const {gameState, apiFetch, refreshGameState, logout} = useAuth();
+    const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(false);
 
     // --- ÉTATS LOCAUX ---
@@ -24,7 +27,50 @@ const Dashboard = () => {
     const [library, setLibrary] = useState<PlaylistsResponse>({});
     const [selectedPlaylistIds, setSelectedPlaylistIds] = useState<string[]>([]);
 
-    // --- LOGIQUE JOUEURS (Inchangée) ---
+    // ÉTAT MODALE DÉCONNEXION
+    const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+
+    // --- LOGIQUE DÉCONNEXION ---
+    const confirmLogout = () => {
+        // 2. APPEL DE LA FONCTION DU CONTEXTE 👇
+        logout();
+        navigate('/login');
+    };
+
+    const renderLogoutModal = () => {
+        if (!isLogoutModalOpen) return null;
+        return (
+            <div
+                className="fixed inset-0 z-[100] bg-[#0F0F13]/90 backdrop-blur-md flex items-center justify-center p-6 animate-in fade-in duration-300">
+                <div
+                    className="bg-[#1E1E24] border border-[#2D2D35] rounded-3xl p-8 w-full max-w-sm text-center shadow-2xl animate-in zoom-in-95 duration-300">
+                    <div
+                        className="w-16 h-16 rounded-full bg-[#FF3B30]/10 border-2 border-[#FF3B30]/50 flex items-center justify-center mx-auto mb-6">
+                        <LogOut size={32} className="text-[#FF3B30]"/>
+                    </div>
+                    <h2 className="font-heading text-2xl uppercase tracking-widest text-white mb-2">Déconnexion</h2>
+                    <p className="text-[#A0A0A5] mb-8 text-sm">Voulez-vous vraiment quitter votre session Maître du Jeu
+                        ?</p>
+                    <div className="grid grid-cols-2 gap-4">
+                        <button
+                            onClick={() => setIsLogoutModalOpen(false)}
+                            className="py-4 rounded-full border border-[#2D2D35] text-white font-heading font-bold uppercase tracking-widest hover:bg-[#2D2D35] transition-all text-xs"
+                        >
+                            Annuler
+                        </button>
+                        <button
+                            onClick={confirmLogout}
+                            className="py-4 rounded-full bg-[#FF3B30] text-white font-heading font-black uppercase tracking-widest hover:bg-[#FF3B30]/80 shadow-[0_0_20px_rgba(255,59,48,0.4)] transition-all text-xs"
+                        >
+                            Quitter
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    // --- LOGIQUE JOUEURS ---
     const handleAddPlayer = () => setPlayers([...players, '']);
     const handlePlayerChange = (index: number, value: string) => {
         const newPlayers = [...players];
@@ -78,7 +124,6 @@ const Dashboard = () => {
         if (selectedPlaylistIds.length === 0) return alert("Sélectionnez au moins une source musicale !");
         setIsLoading(true);
         try {
-            // On envoie les clés (noms des playlists)
             const response = await apiFetch('/api/game/setup/playlists', {
                 method: 'POST',
                 body: JSON.stringify({playlist_ids: selectedPlaylistIds})
@@ -93,11 +138,19 @@ const Dashboard = () => {
 
     // --- RENDER ---
 
-    // 1. VUE LOBBY (CASTING) - Inchangée
+    // 1. VUE LOBBY (CASTING)
     if (!gameState || gameState.status === 'LOBBY') {
         return (
             <div
                 className="min-h-screen bg-[#0F0F13] text-white flex flex-col items-center justify-center p-6 relative overflow-hidden font-body">
+
+                <button
+                    onClick={() => setIsLogoutModalOpen(true)}
+                    className="absolute top-6 right-6 z-50 p-3 rounded-full bg-[#1E1E24]/80 backdrop-blur-md border border-[#2D2D35] text-[#A0A0A5] hover:text-[#FF3B30] hover:border-[#FF3B30]/50 transition-all shadow-lg"
+                >
+                    <LogOut size={20}/>
+                </button>
+
                 <div
                     className="absolute top-[-20%] left-[-20%] w-[60%] h-[60%] bg-[#00F0FF]/10 rounded-full blur-[120px] pointer-events-none"></div>
                 <div
@@ -147,11 +200,13 @@ const Dashboard = () => {
                         {isLoading ? 'SYNC...' : 'VALIDER LE CASTING'}
                     </button>
                 </div>
+
+                {renderLogoutModal()}
             </div>
         );
     }
 
-    // 2. VUE PLAYLIST (DECK SELECTION) - MODIFIÉE POUR LA GRILLE 2x2
+    // 2. VUE PLAYLIST (DECK SELECTION)
     if (gameState.status === 'PLAYLIST_SELECTION') {
         const playlistEntries = Object.entries(library);
 
@@ -160,28 +215,34 @@ const Dashboard = () => {
                 <div
                     className="absolute top-0 right-0 w-[50%] h-[50%] bg-[#FF0099]/10 rounded-full blur-[120px] pointer-events-none"></div>
 
-                <header className="mb-8 z-10 pt-4 flex-shrink-0">
-                    <div className="flex items-center gap-3 mb-2">
-                        <Music className="text-[#FF0099] drop-shadow-[0_0_10px_rgba(255,0,153,0.5)]" size={28}/>
-                        <h1 className="font-heading text-2xl uppercase tracking-widest text-white">Le Deck</h1>
+                <header className="mb-8 z-10 pt-4 flex-shrink-0 flex justify-between items-start">
+                    <div>
+                        <div className="flex items-center gap-3 mb-2">
+                            <Music className="text-[#FF0099] drop-shadow-[0_0_10px_rgba(255,0,153,0.5)]" size={28}/>
+                            <h1 className="font-heading text-2xl uppercase tracking-widest text-white">Le Deck</h1>
+                        </div>
+                        <p className="text-[#A0A0A5] text-xs font-bold uppercase tracking-widest pl-1">
+                            Composez la pioche musicale
+                        </p>
                     </div>
-                    <p className="text-[#A0A0A5] text-xs font-bold uppercase tracking-widest pl-1">
-                        Composez la pioche musicale
-                    </p>
+
+                    <button
+                        onClick={() => setIsLogoutModalOpen(true)}
+                        className="p-3 rounded-full bg-[#1E1E24]/80 backdrop-blur-md border border-[#2D2D35] text-[#A0A0A5] hover:text-[#FF3B30] hover:border-[#FF3B30]/50 transition-all shadow-lg"
+                    >
+                        <LogOut size={20}/>
+                    </button>
                 </header>
 
                 <div className="flex-1 z-10 grid grid-cols-2 gap-4 pb-32 content-start">
                     {playlistEntries.map(([name, summary]) => {
                         const isSelected = selectedPlaylistIds.includes(summary.id);
 
-                        // --- NOUVEAU : Préparation des 4 covers ---
                         let displayCovers = summary.covers.slice(0, 4);
-                        // Fallback si aucune cover n'existe
                         if (displayCovers.length === 0) {
                             displayCovers = ['https://via.placeholder.com/500x500?text=No+Music'];
                         }
 
-                        // On limite l'affichage à 3 tags max
                         const displayTags = summary.tags.slice(0, 3);
 
                         return (
@@ -194,7 +255,6 @@ const Dashboard = () => {
                                         : 'border-[#2D2D35] bg-[#1E1E24] hover:border-[#A0A0A5] z-0'
                                 }`}
                             >
-                                {/* --- NOUVEAU : Grille 2x2 pour les covers --- */}
                                 <div className="absolute inset-0 w-full h-full grid grid-cols-2 grid-rows-2">
                                     {displayCovers.map((coverUrl, index) => (
                                         <div key={index}
@@ -208,11 +268,9 @@ const Dashboard = () => {
                                     ))}
                                 </div>
 
-                                {/* Overlay sombre global par-dessus la grille */}
                                 <div
                                     className="absolute inset-0 bg-gradient-to-t from-[#0F0F13] via-black/40 to-transparent opacity-90 pointer-events-none"></div>
 
-                                {/* Badge Track Count */}
                                 <div
                                     className="absolute top-3 left-3 bg-[#0F0F13]/80 backdrop-blur-md px-2 py-1 rounded-lg border border-[#2D2D35] z-20">
                                     <p className="text-[10px] font-bold text-white flex items-center gap-1">
@@ -220,7 +278,6 @@ const Dashboard = () => {
                                     </p>
                                 </div>
 
-                                {/* Infos Playlist */}
                                 <div className="absolute bottom-0 left-0 p-4 w-full z-20">
                                     <h3 className={`font-heading font-bold text-sm truncate uppercase tracking-wide mb-2 ${isSelected ? 'text-[#FF0099]' : 'text-white'}`}>
                                         {summary.title || name}
@@ -236,7 +293,6 @@ const Dashboard = () => {
                                     </div>
                                 </div>
 
-                                {/* Checkbox Indicator */}
                                 {isSelected && (
                                     <div
                                         className="absolute top-3 right-3 bg-[#FF0099] text-white rounded-full p-1 shadow-[0_0_15px_#FF0099] animate-in zoom-in duration-200 z-20">
@@ -255,7 +311,6 @@ const Dashboard = () => {
                     )}
                 </div>
 
-                {/* Footer Fixe */}
                 <div
                     className="fixed bottom-0 left-0 w-full p-6 bg-[#0F0F13]/90 backdrop-blur-xl border-t border-[#2D2D35] z-50">
                     <button
@@ -267,6 +322,8 @@ const Dashboard = () => {
                         {isLoading ? 'INIT...' : `LANCER (${selectedPlaylistIds.length})`}
                     </button>
                 </div>
+
+                {renderLogoutModal()}
             </div>
         );
     }
