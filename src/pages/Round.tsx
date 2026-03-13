@@ -264,7 +264,6 @@ const Round = () => {
                         />
                     </div>
 
-                    <div className="flex-grow min-h-[1rem]"></div>
                 </main>
             )}
 
