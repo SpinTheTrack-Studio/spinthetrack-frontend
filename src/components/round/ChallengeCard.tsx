@@ -72,6 +72,14 @@ export const ChallengeCard = ({
                             </p>
                         </div>
                     )}
+                    {challenge.mode === 'LAST_WORD' && (
+                        <div className="p-4 bg-[#1A1A1E] rounded-3xl border border-white/5 w-full shadow-inner">
+                            <p className="text-[10px] text-[#A0A0A5] uppercase font-black mb-2 mt-2 tracking-[0.2em]">Solution</p>
+                            <p className={`text-xl sm:text-2xl text-[#39FF14]-400 font-bold italic leading-snug ${theme.color}`}>
+                                "{challenge.answer}"
+                            </p>
+                        </div>
+                    )}
                 </div>
             )}
         </>

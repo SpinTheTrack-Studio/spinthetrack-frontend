@@ -9,7 +9,7 @@ export interface Player {
 }
 
 export interface Challenge {
-    mode: 'EXPERT' | 'MAESTRO' | 'TWISTED' | 'HUMMER'; // Ajout de HUMMER
+    mode: 'EXPERT' | 'MAESTRO' | 'TWISTED' | 'LAST_WORD';
     track_id: string;
     track_title: string;
     track_artist: string;

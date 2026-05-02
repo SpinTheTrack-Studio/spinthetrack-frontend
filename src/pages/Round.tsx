@@ -88,9 +88,7 @@ const Round = () => {
             audioCtxRef.current.resume();
         }
 
-        if (challenge?.mode === 'HUMMER' && gainNodeRef.current) {
-            gainNodeRef.current.gain.value = 0.05; // 5% de volume
-        } else if (gainNodeRef.current) {
+        if (gainNodeRef.current) {
             gainNodeRef.current.gain.value = 1.0;  // 100% de volume
         }
         // ------------------------------------------------
@@ -174,7 +172,7 @@ const Round = () => {
                 return {color: 'text-pink-500', border: 'border-pink-500', bgGlow: 'bg-pink-500/20', icon: Mic2};
             case 'TWISTED':
                 return {color: 'text-cyan-400', border: 'border-cyan-400', bgGlow: 'bg-cyan-400/20', icon: Zap};
-            case 'HUMMER':
+            case 'LAST_WORD':
                 return {color: 'text-[#39FF14]', border: 'border-[#39FF14]', bgGlow: 'bg-[#39FF14]/20', icon: Ear};
             default:
                 return {color: 'text-white', border: 'border-white', bgGlow: 'bg-white/10', icon: Disc};
